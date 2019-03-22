@@ -17,4 +17,4 @@ after_success:
   #Log in to docker hub
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
   #Push image to docker hub
-  - docker push ajammil/kwikker/frontend
+  - docker push ajammil/kwikkerfrontend

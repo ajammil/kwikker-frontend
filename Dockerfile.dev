@@ -13,4 +13,4 @@ RUN apt-get update && apt-get install -yq google-chrome-stable
 
 
 COPY . .
-CMD ng test
+#CMD ng test
