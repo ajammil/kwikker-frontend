@@ -7,6 +7,7 @@ before_install:
 
 
 script:
+  - gem install bundler
 #tests will be here
 # run tests (not yet working)
 #- docker run ajammil/kwikker/frontendtest ng test --watch=false
