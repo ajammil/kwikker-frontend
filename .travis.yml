@@ -27,7 +27,7 @@ deploy:
   env: KwikkerFrontend-env
   bucket_name: elasticbeanstalk-eu-central-1-911980560928
   bucket_path: frontend-kwikker
-   on:
+  on:
     branch: master
   access_key_id: $AWS_ACCESS_KEY
   secret_access_key:
