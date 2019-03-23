@@ -19,3 +19,16 @@ after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
   #Push image to docker hub
   - docker push ajammil/kwikkerfrontend:latest
+
+deploy:
+  provider: elasticbeanstalk
+  region: eu-central-1
+  app: kwikker-frontend
+  env: KwikkerFrontend-env
+  bucket_name: elasticbeanstalk-eu-central-1-911980560928
+  bucket_path: frontend-kwikker
+   on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key:
+    secure: "$AWS_SECRET_KEY"
