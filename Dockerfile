@@ -2,7 +2,7 @@
 ### build environment ###
 #########################
 # base image
-FROM node
+FROM node as builder
 
 WORKDIR '/app'
 # install and cache app dependencies
