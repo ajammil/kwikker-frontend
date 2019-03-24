@@ -4,8 +4,10 @@
 # base image
 FROM node as builder
 
-WORKDIR '/app'
+WORKDIR /app
 # install and cache app dependencies
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
 COPY package.json .
 RUN npm install
@@ -17,8 +19,7 @@ RUN apt-get update && apt-get install -yq google-chrome-stable > chromelog.txt
 
 
 
-# add `/app/node_modules/.bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+
 
 
 # add app
@@ -37,7 +38,8 @@ FROM nginx:alpine
 
 # copy artifact build from the 'build environment'
 COPY --from=builder /app/dist /usr/share/nginx/html
-
+# get configuration filees
+COPY ./default.conf /etc/nginx/conf.default.conf
 # expose port 80
 EXPOSE 80
 
