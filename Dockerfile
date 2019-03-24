@@ -37,9 +37,9 @@ RUN npm run build
 FROM nginx:alpine
 
 # copy artifact build from the 'build environment'
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist/kwikker/. /usr/share/nginx/html
 # get configuration filees
-COPY ./default.conf /etc/nginx/conf.default.conf
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 # expose port 80
 EXPOSE 80
 
