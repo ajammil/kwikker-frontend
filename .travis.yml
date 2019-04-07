@@ -23,7 +23,7 @@ after_success:
 deploy:
   provider: elasticbeanstalk
   region: eu-central-1
-  app: kwikker-frontend
+  app: Kwikker frontend
   env: KwikkerFrontend-env
   bucket_name: elasticbeanstalk-eu-central-1-911980560928
   bucket_path: frontend-kwikker
