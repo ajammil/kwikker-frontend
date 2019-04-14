@@ -24,7 +24,7 @@ COPY . .
 
 
 # generate build
-RUN npm run build
+RUN npm run build -- --prod
 
 ##################
 ### production ###
