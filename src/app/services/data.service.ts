@@ -19,6 +19,7 @@ import { MiniUser } from '../model/mini-user';
 export class DataService {
   // private base: String = 'http://faa34478.ngrok.io';
   // constructor(private http: HttpClient) {}
+
    /**
    * Backend server base
    */
@@ -52,7 +53,7 @@ export class DataService {
    * @returns array of Kweeks
    */
   getUserKweeks(userName: string, lastRetrivedId: string): Observable<Kweek[]> {
-    const parametersSent = {params: new HttpParams().set('last_retrieved_kweek_id', lastRetrivedId).set('username', userName)};
+    const parametersSent = {params: new HttpParams().set('username', userName)};
     return this.http
       .get<Kweek[]>(`${this.base}kweeks/timelines/profile`, parametersSent)
       .pipe(catchError(this.handleError));
@@ -80,7 +81,7 @@ export class DataService {
    * @returns observable
   */
   likeOrUnlikeKweek(id: string): Observable<any> {
-    return this.http.post<any>(`${this.base}kweeks/like`, id).pipe(
+    return this.http.post<any>(`${this.base}kweeks/like`, { 'id' : id }).pipe(
       map(res => res),
       catchError(this.handleError)
     );
@@ -92,7 +93,7 @@ export class DataService {
    * @returns observable
   */
   rekweekOrUnrekweekKweek(id: string): Observable<any> {
-    return this.http.post<any>(`${this.base}kweeks/rekweek`, id).pipe(
+    return this.http.post<any>(`${this.base}kweeks/rekweek`, { 'id' : id}).pipe(
       map(res => res),
       catchError(this.handleError)
     );
@@ -192,7 +193,7 @@ export class DataService {
    */
   getConverstations(): Observable<Conversation[]> {
     return this.http
-      .get<Conversation[]>('`${this.base}direct_message/conversations`')
+      .get<Conversation[]>(`${this.base}direct_message/conversations`)
       .pipe(catchError(this.handleError));
   }
 
@@ -246,7 +247,6 @@ export class DataService {
       return this.http.get<MiniUser[]>(`${this.base}direct_message/recent_conversationers`);
     }
   /**
-   *
    * to post user's name and user's password
    * @param user {object} sends the user information to get
    * token after it and also could be null
@@ -267,14 +267,13 @@ export class DataService {
    * @param userName {string} The userName that will be followed
    * @returns Request Response
    */
-  followUser(userName: string): Observable<any> {
+  followUser(userName: string): Observable <any> {
     const paramsSent = { params: new HttpParams().set('username', userName) };
-    return this.http
-      .post<any>(this.base + 'interactions/follow', paramsSent)
-      .pipe(
-        map(res => res),
-        catchError(this.handleError)
-      );
+    return this.http.post<any>(this.base + 'interactions/follow', paramsSent)
+                              .pipe(
+                              map(res => res),
+                              catchError(this.handleError)
+                              ); 
   }
 
   /**
@@ -453,14 +452,15 @@ export class DataService {
     return throwError('Something bad happened; please try again later.');
   }
 
-  /**
- * signUpUSer
- */
+/**
+* A post method function to send user's information to be signed up.
+* @param user {any} takes object of user's information.
+* Returns either success/error message
+* @returns any
+*/
 public signUpUser(user: any): Observable <any> {
   const body = JSON.stringify(user);
-  console.log(body);
-  const headers = {headers: new HttpHeaders({'Content-Type' : 'application/json'})};
-  return this.http.post<any>(this.base + 'account/registration', body, headers)
+  return this.http.post<any>(this.base + 'account/registration', body)
                               .pipe(
                               map(res => res),
                               catchError(this.handleError)
@@ -468,13 +468,14 @@ public signUpUser(user: any): Observable <any> {
 }
 
 /**
- * sendEmail
- */
-public sendEmail(user: any): Observable <any> {
-  const body = JSON.stringify(user);
-  console.log(body);
-  const headers = {headers: new HttpHeaders({'Content-Type' : 'application/json'})};
-  return this.http.post<any>(this.base + 'account/forget_password', body, headers)
+* A post method function to send Email to the back-service to give it a confirmation link.
+* @param code {any} sends confirmation code
+* Returns either success/error message
+* @returns any
+*/
+public sendEmail(email: any): Observable <any> {
+  const body = JSON.stringify(email);
+  return this.http.post<any>(this.base + 'account/forget_password', body)
                               .pipe(
                               map(res => res),
                               catchError(this.handleError)
@@ -482,15 +483,16 @@ public sendEmail(user: any): Observable <any> {
 
 }
 /**
- * signUpConfirm
- */
+* A post method function to send confirmation code to the back-service to verify it.
+* @param code {any} sends confirmation code
+* Token is given with a success response
+* otherwise an  error message is returned
+* @returns any
+*/
 public signUpConfirm(code: any): Observable <any> {
   const body = JSON.stringify(code);
   console.log(body);
-  const headers = {headers: new HttpHeaders({'Content-Type' : 'application/json'})};
-  
-  //else, confirming email
-  return this.http.post<any>(this.base + 'account/registration/confirmation', body, headers)
+  return this.http.post<any>(this.base + 'account/registration/confirmation', body)
                               .pipe(
                               map(res => res),
                               catchError(this.handleError)
@@ -519,13 +521,16 @@ public signUpConfirm(code: any): Observable <any> {
 
   
 /**
- * sendPass
- */
+* A put method function to send New reset password to the back-service to be stored
+* @param pass {any} sends New password
+* Token is given with a success response
+*otherwise an  error message is returned
+* @returns any
+*/
 public sendPass(pass: any): Observable <any> {
   const body = JSON.stringify(pass);
   console.log(body);
-  const headers = {headers: new HttpHeaders({'Content-Type' : 'application/json'})};
-  return this.http.post<any>(this.base + 'user/password', body, headers)
+    return this.http.put<any>(this.base + 'user/password', body)
                               .pipe(
                               map(res => res),
                               catchError(this.handleError)
