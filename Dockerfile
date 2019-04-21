@@ -24,7 +24,7 @@ COPY . .
 
 
 # generate build
-RUN ng build --prod --aot
+RUN ng build --prod --named-chunks
 
 ##################
 ### production ###
