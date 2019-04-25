@@ -11,6 +11,8 @@ import {
 import { FormControl } from "@angular/forms";
 import { KweeksService } from "../services/kweeks.service";
 import { Overlay } from "@angular/cdk/overlay";
+import { LikesRekweeksListComponent } from '../likes-rekweeks-list/likes-rekweeks-list.component';
+import { NewKweekComponent } from '../new-kweek/new-kweek.component';
 @Component({
   selector: "app-reply",
   templateUrl: "./reply.component.html",
@@ -25,6 +27,7 @@ export class ReplyComponent implements OnInit {
   position = new FormControl(this.positionOption);
   showDelay = new FormControl(50);
   hideDelay = new FormControl(50);
+  busyRequest: Boolean = false;
 
   /* The Authorized User (The one who made Log in) */
   authorizedUser: string = localStorage.getItem("username");
@@ -56,7 +59,7 @@ export class ReplyComponent implements OnInit {
 
   /**
    * close popup when another nested popup appear and open the new popup
-   * @param kweek 
+   * @param kweek
    * No @returns
    */
   nestedDialog(kweek: Kweek): void {
@@ -76,12 +79,43 @@ export class ReplyComponent implements OnInit {
   }
 
   /**
+   * close popup when another nested popup appear and open the new popup
+   * @param kweek
+   * No @returns
+   */
+  likersDialog(kweek: Kweek): void {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.width = "640px";
+    const dialogRef = this.dialog.open(LikesRekweeksListComponent, dialogConfig);
+    dialogRef.componentInstance.clickedKweek = this.clickedKweek;
+    dialogRef.componentInstance.likers = true;
+    this.dialogRef.close();
+  }
+
+  /**
+   * close popup when another nested popup appear and open the new popup
+   * @param kweek
+   * No @returns
+   */
+  rekweekersDialog(kweek: Kweek): void {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.width = "520px";
+    const dialogRef = this.dialog.open(LikesRekweeksListComponent, dialogConfig);
+    dialogRef.componentInstance.clickedKweek = this.clickedKweek;
+    dialogRef.componentInstance.likers = false;
+    this.dialogRef.close();
+  }
+  /**
    * calling function to like kweek from service which has the common replies and kweeks functions
    * @param kweek
    * No @returns
    */
   like(kweek: Kweek): void {
-    this.kweekFunc.like(kweek);
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekFunc.like(kweek);
+      this.busyRequest = false;
+    }
   }
 
   /**
@@ -90,7 +124,11 @@ export class ReplyComponent implements OnInit {
    * No @returns
    */
   unlike(kweek: Kweek): void {
-    this.kweekFunc.unlike(kweek);
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekFunc.unlike(kweek);
+      this.busyRequest = false;
+    }
   }
 
   /**
@@ -99,7 +137,11 @@ export class ReplyComponent implements OnInit {
    * No @returns
    */
   rekweek(kweek: Kweek): void {
-    this.kweekFunc.rekweek(kweek);
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekFunc.rekweek(kweek);
+      this.busyRequest = false;
+    }
   }
 
   /**
@@ -108,7 +150,11 @@ export class ReplyComponent implements OnInit {
    * No @returns
    */
   unrekweek(kweek: Kweek): void {
-    this.kweekFunc.unrekweek(kweek);
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekFunc.unrekweek(kweek);
+      this.busyRequest = false;
+    }
   }
 
   /**
@@ -117,9 +163,13 @@ export class ReplyComponent implements OnInit {
    * No @returns
    */
   deleteRoot_ClickedKweek(kweek: Kweek): void {
-    this.kweekService.deleteKweek(kweek.id).subscribe(() => {
-      this.dialogRef.close();
-    });
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekService.deleteKweek(kweek.id).subscribe(() => {
+        this.dialogRef.close();
+        this.busyRequest = false;
+      });
+    }
   }
 
   /**
@@ -128,9 +178,22 @@ export class ReplyComponent implements OnInit {
    * No @returns
    */
   deleteReply(kweek: Kweek): void {
-    this.kweekService.deleteKweek(kweek.id).subscribe(() => {
-      const indexToDelete = this.replies.indexOf(kweek);
-      this.replies.splice(indexToDelete, 1);
-    });
+    if (!this.busyRequest) {
+      this.busyRequest = true;
+      this.kweekService.deleteKweek(kweek.id).subscribe(() => {
+        const indexToDelete = this.replies.indexOf(kweek);
+        this.replies.splice(indexToDelete, 1);
+        this.busyRequest = false;
+      });
+    }
   }
+
+  reply(kweek: Kweek): void {
+    const dialogRef = this.dialog.open(NewKweekComponent, {
+      panelClass: 'kweekBox'
+    });
+    dialogRef.componentInstance.kweek = kweek;
+    dialogRef.componentInstance.reply = true;
+  }
+
 }

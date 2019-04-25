@@ -14,23 +14,24 @@ import { Trend } from "../model/Trend";
 import { Kweek } from "../model/kweek";
 import { MiniUser } from "../model/mini-user";
 import { BlockedMutedUser } from '../model/bloked-muted-users';
+import { $ } from 'protractor';
+import { CacheService } from './cache.service';
 
 @Injectable({
   providedIn: "root"
 })
 export class DataService {
-
-  // constructor(private http: HttpClient) {}
   /**
    * Backend server base
    */
   private base: String =
-    "http://kwikkerbackend.eu-central-1.elasticbeanstalk.com/";
+         "http://kwikkerbackend.eu-central-1.elasticbeanstalk.com/";
   /**
    *
    * @param http component to send requests
    */
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient ,
+              private cacheService:CacheService) {}
 
   /**
    * get request to get All information about certain user
@@ -43,7 +44,6 @@ export class DataService {
       : {};
     return this.http
       .get<User>(`${this.base}user/profile`, userNameSent);
-      
   }
 
   /**
@@ -117,11 +117,40 @@ export class DataService {
   }
 
   /**
+   * retreive likers of a kweek
+   * @param id {string} of kweek that we want to like
+   * @returns observable
+   */
+  kweekLikers(id: string): Observable<any> {
+    const options = id
+      ? {
+          params: new HttpParams().set("id", id)
+        }
+      : {};
+    return this.http.get<MiniUser[]>(`${this.base}kweeks/likers`, options);
+  }
+
+  /**
+   * retreive rekweekers of a kweek
+   * @param id {string} of kweek that we want to like
+   * @returns observable
+   */
+  kweekRekweekers(id: string): Observable<any> {
+    const options = id
+      ? {
+          params: new HttpParams().set("id", id)
+        }
+      : {};
+    return this.http.get<MiniUser[]>(`${this.base}kweeks/rekweekers`, options);
+  }
+
+  /**
    * rekweek kweek
    * @param id {string} of kweek that we want to rekweek
    * @returns observable
    */
   rekweekKweek(id: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'kweeks/timelines/profile');
     return this.http.post<any>(`${this.base}kweeks/rekweek`, { id: id }).pipe(
       map(res => res),
       catchError(this.handleError)
@@ -161,7 +190,10 @@ export class DataService {
    * newer kweeks after it and also could be null
    * @returns array of Kweeks
    */
-  getUserLikedKweeks( userName: string, lastRetrivedId: string): Observable<Kweek[]> {
+  getUserLikedKweeks(
+    userName: string,
+    lastRetrivedId: string
+  ): Observable<Kweek[]> {
     const parametersSent = userName
       ? { params: new HttpParams().set("username", userName) }
       : {};
@@ -180,27 +212,29 @@ export class DataService {
    * No Parameters
    * @returns array of MiniUsers
    */
-  getUserFollowers(userName: string, last_follower_username: string): Observable<User[]> {
-   
-
-    if (last_follower_username )
-    {
+  getUserFollowers(
+    userName: string,
+    last_follower_username: string
+  ): Observable<User[]> {
+    if (last_follower_username) {
       const parametersSent = userName
-    ? { params: new HttpParams().set('username', userName).append('last_retrieved_username', last_follower_username) } : {};
-    return this.http
-      .get<User[]>(`${this.base}interactions/followers`,parametersSent)
-      .pipe(catchError(this.handleError));
-    }
-    else
-    {
+        ? {
+            params: new HttpParams()
+              .set("username", userName)
+              .append("last_retrieved_username", last_follower_username)
+          }
+        : {};
+      return this.http
+        .get<User[]>(`${this.base}interactions/followers`, parametersSent)
+        .pipe(catchError(this.handleError));
+    } else {
       const parametersSent = userName
-    ? { params: new HttpParams().set('username', userName)} : {};
-    return this.http
-      .get<User[]>(`${this.base}interactions/followers`,parametersSent)
-      .pipe(catchError(this.handleError));
+        ? { params: new HttpParams().set("username", userName) }
+        : {};
+      return this.http
+        .get<User[]>(`${this.base}interactions/followers`, parametersSent)
+        .pipe(catchError(this.handleError));
     }
-
-    
   }
 
   /**
@@ -208,26 +242,30 @@ export class DataService {
    * No Parameters
    * @returns array of MiniUsers
    */
-  getUserFollowings(userName: string, last_following_username: string): Observable<User[]> {
-   
-    if (last_following_username )
-    {
+  getUserFollowings(
+    userName: string,
+    last_following_username: string
+  ): Observable<User[]> {
+    if (last_following_username) {
       const parametersSent = userName
-    ? { params: new HttpParams().set('username', userName).append('last_retrieved_username', last_following_username) } : {};
-    return this.http
-      .get<User[]>(`${this.base}interactions/following`,parametersSent)
-      .pipe(catchError(this.handleError));
-    }
-    else
-    {
+        ? {
+            params: new HttpParams()
+              .set("username", userName)
+              .append("last_retrieved_username", last_following_username)
+          }
+        : {};
+      return this.http
+        .get<User[]>(`${this.base}interactions/following`, parametersSent)
+        .pipe(catchError(this.handleError));
+    } else {
       const parametersSent = userName
-    ? { params: new HttpParams().set('username', userName)} : {};
-    return this.http
-      .get<User[]>(`${this.base}interactions/following`,parametersSent)
-      .pipe(catchError(this.handleError));
+        ? { params: new HttpParams().set("username", userName) }
+        : {};
+      return this.http
+        .get<User[]>(`${this.base}interactions/following`, parametersSent)
+        .pipe(catchError(this.handleError));
     }
   }
-
 
   /**
    * get kweeks from in memory data service to test the kweeks
@@ -252,12 +290,20 @@ export class DataService {
   /**
    * get all conversation for user
    */
-  getConverstations(username:string): Observable<Conversation[]> {
+  getConverstations(username: string): Observable<Conversation[]> {
     const parametersSent = username
-    ? { params: new HttpParams().set('last_conversationers_retrieved_username', username) }
-    : {};
+      ? {
+          params: new HttpParams().set(
+            "last_conversationers_retrieved_username",
+            username
+          )
+        }
+      : {};
     return this.http
-      .get<Conversation[]>(`${this.base}direct_message/conversations`,parametersSent)
+      .get<Conversation[]>(
+        `${this.base}direct_message/conversations`,
+        parametersSent
+      )
       .pipe(catchError(this.handleError));
   }
 
@@ -289,13 +335,13 @@ export class DataService {
    * get first 20 users that contain filter by substring
    * @param filterBy used to filter search
    */
-  searchUsers(filterBy: string): Observable<MiniUser[]> {
+  searchUsers(filterBy: string): Observable<User[]> {
     const options = filterBy
       ? {
           params: new HttpParams().set("search_text", filterBy)
         }
       : {};
-    return this.http.get<MiniUser[]>(`${this.base}search/users`, options);
+    return this.http.get<User[]>(`${this.base}search/users`, options);
   }
   /**
    * send messages and photos in chat
@@ -304,8 +350,8 @@ export class DataService {
   createMessage(message) {
     return this.http.post(`${this.base}direct_message/`, message);
   }
-  getRecentConversations(): Observable<MiniUser[]> {
-    return this.http.get<MiniUser[]>(
+  getRecentConversations(): Observable<User[]> {
+    return this.http.get<User[]>(
       `${this.base}direct_message/recent_conversationers`
     );
   }
@@ -319,7 +365,9 @@ export class DataService {
     const body = JSON.stringify(user);
     const headers = {
       headers: new HttpHeaders({ "Content-Type": "application/json" })
+
     };
+
     return this.http.post<any>(this.base + "account/login", body, headers).pipe(
       map(res => res),
       catchError(this.handleError)
@@ -331,15 +379,17 @@ export class DataService {
    * @returns Request Response
    */
   followUser(userName: string): Observable <any> {
+    this.cacheService.invalidateUrl(this.base+'interactions/following');
     const paramsSent = JSON.stringify({username:userName});
     const headers = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      headers: new HttpHeaders({ "Content-Type": "application/json" })
     };
-    return this.http.post<any>(this.base + 'interactions/follow', paramsSent, headers)
-                              .pipe(
-                              map(res => res),
-                              catchError(this.handleError)
-                              ); 
+    return this.http
+      .post<any>(this.base + "interactions/follow", paramsSent, headers)
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
@@ -364,12 +414,13 @@ export class DataService {
    * @returns Request Response
    */
   muteUser(userName: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'interactions/mutes');
     const paramsSent = JSON.stringify({username:userName});
     const headers = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      headers: new HttpHeaders({ "Content-Type": "application/json" })
     };
     return this.http
-      .post<any>(this.base + 'interactions/mutes', paramsSent, headers)
+      .post<any>(this.base + "interactions/mutes", paramsSent, headers)
       .pipe(
         map(res => res),
         catchError(this.handleError)
@@ -382,6 +433,7 @@ export class DataService {
    * @returns Request Response
    */
   unmuteUser(userName: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'interactions/mutes');
     const paramsSent = { params: new HttpParams().set("username", userName) };
     return this.http
       .delete<any>(this.base + "interactions/mutes", paramsSent)
@@ -397,12 +449,13 @@ export class DataService {
    * @returns Request Response
    */
   blockUser(userName: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'interactions/blocks');
     const paramsSent = JSON.stringify({username:userName});
     const headers = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      headers: new HttpHeaders({ "Content-Type": "application/json" })
     };
     return this.http
-      .post<any>(this.base + 'interactions/blocks', paramsSent, headers)
+      .post<any>(this.base + "interactions/blocks", paramsSent, headers)
       .pipe(
         map(res => res),
         catchError(this.handleError)
@@ -415,6 +468,7 @@ export class DataService {
    * @returns Request Response
    */
   unblockUser(userName: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'interactions/blocks');
     const paramsSent = { params: new HttpParams().set("username", userName) };
     return this.http
       .delete<any>(this.base + "interactions/blocks", paramsSent)
@@ -430,16 +484,21 @@ export class DataService {
    * @param Bio {string} The Edited Bio
    * @returns Request Response
    */
-  updateProfile(screenName: string, Bio: string){
-    const paramsSent = JSON.stringify({bio:Bio , screen_name:screenName}, null , '');
+  updateProfile(screenName: string, Bio: string) {
+    const paramsSent = JSON.stringify(
+      { bio: Bio, screen_name: screenName },
+      null,
+      ""
+    );
     const headers = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      headers: new HttpHeaders({ "Content-Type": "application/json" })
     };
-    return this.http.patch(`${this.base}user/profile`, paramsSent, headers)
-                          .pipe(
-                            map(res => res),
-                            catchError(this.handleError)
-                            );
+    return this.http
+      .patch(`${this.base}user/profile`, paramsSent, headers)
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
@@ -447,14 +506,13 @@ export class DataService {
    * @param image_file {File} The Uploaded Image
    * @returns Request Response (Image Url);
    */
-  updateBanner(image_file: File): Observable<string> { 
+  updateBanner(image_file: File): Observable<string> {
     let body = new FormData();
-    body.append('file', image_file);
-    return this.http.post<string>(this.base + 'user/profile_banner', body)
-                       .pipe(
-                        map(res => res),
-                        catchError(this.handleError)
-                        );             
+    body.append("file", image_file);
+    return this.http.post<string>(this.base + "user/profile_banner", body).pipe(
+      map(res => res),
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -463,11 +521,10 @@ export class DataService {
    * @returns Request Response (Image Url);
    */
   removeBanner() {
-    return this.http.delete<any>(this.base + 'user/profile_banner')
-                            .pipe(
-                              map(res => res),
-                              catchError(this.handleError)
-                            );               
+    return this.http.delete<any>(this.base + "user/profile_banner").pipe(
+      map(res => res),
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -477,7 +534,8 @@ export class DataService {
    */
   updateProfilePicture(image_file: File): Observable<string> {
     const body = new FormData();
-    body.append('file', image_file);
+    body.append('file', image_file, "Image.png");
+    
     return this.http.post<string>(this.base + 'user/profile_picture', body)
                           .pipe(
                            map(res => res),
@@ -491,11 +549,10 @@ export class DataService {
    * @returns Request Response (Image Url);
    */
   removeProfilePicture() {
-    return this.http.delete<any>(this.base + 'user/profile_picture')
-                            .pipe(
-                              map(res => res),
-                              catchError(this.handleError)
-                            );    
+    return this.http.delete<any>(this.base + "user/profile_picture").pipe(
+      map(res => res),
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -539,11 +596,11 @@ export class DataService {
     );
   }
 
-  searchKweeks(filterBy:string):Observable<Kweek[]> {
+  searchKweeks(filterBy: string): Observable<Kweek[]> {
     const params = filterBy
       ? { params: new HttpParams().set("search_text", filterBy) }
       : {};
-    return this.http.get<Kweek[]>(this.base+'search/kweeks',params);
+    return this.http.get<Kweek[]>(this.base + "search/kweeks", params);
   }
   /**
    * A post method function to send Email to the back-service to give it a confirmation link.
@@ -553,6 +610,7 @@ export class DataService {
    */
   public sendEmail(email: any): Observable<any> {
     const body = JSON.stringify(email);
+    
     return this.http
       .post<any>(this.base + "account/forget_password", body)
       .pipe(
@@ -568,12 +626,21 @@ export class DataService {
    * @returns any
    */
   public signUpConfirm(code: any): Observable<any> {
-    const body = JSON.stringify(code);
-    console.log(body);
+    // const body = JSON.stringify(code);
+
+    // console.log(body);
+    const CODE = code.confirmation_code;
+
+    const headers = {
+      headers: new HttpHeaders({ "Content-Type": "application/json",
+                                  "CODE":  `${CODE}`})
+    };
+
+   
     return this.http
-      .post<any>(this.base + "account/registration/confirmation", body)
+      .post<any>(this.base + "account/registration/confirmation",headers)
       .pipe(
-        map(res => res),
+        map(res => res),  
         catchError(this.handleError)
       );
   }
@@ -583,6 +650,7 @@ export class DataService {
    * @returns Request Response
    */
   addNewKweek(text: string): Observable<any> {
+    this.cacheService.invalidateUrl(this.base+'kweeks/timelines/profile');
     const obj = { text: String(), reply_to: String() };
     obj.text = text;
     obj.reply_to = null;
@@ -600,10 +668,21 @@ export class DataService {
    *otherwise an  error message is returned
    * @returns any
    */
-  public sendPass(pass: any): Observable<any> {
+  public sendPass(pass: any, code: any): Observable<any> {
     const body = JSON.stringify(pass);
-    console.log(body);
-    return this.http.put<any>(this.base + "user/password", body).pipe(
+    
+    let val: string;
+    val = code;
+    //console.log("value:" ,val );
+    const headers = {
+      headers: new HttpHeaders({ "Content-Type": "application/json",
+                                  "CODE":  `${val}` })
+
+                                  
+    };
+   
+    console.log(headers );
+    return this.http.put<any>(this.base + "account/reset_password", body,headers).pipe(
       map(res => res),
       catchError(this.handleError)
     );
@@ -635,20 +714,20 @@ export class DataService {
    *get request to get user's muted accounts
    * @returns array of muted users
    */
- getMutedAccounts(): Observable<BlockedMutedUser[]>{
-  return this.http
-  .get<BlockedMutedUser[]>(`${this.base}interactions/mutes`)
-  .pipe(catchError(this.handleError));
-}
+  getMutedAccounts(): Observable<BlockedMutedUser[]> {
+    return this.http
+      .get<BlockedMutedUser[]>(`${this.base}interactions/mutes`)
+      .pipe(catchError(this.handleError));
+  }
 
-/**
+  /**
    *get request to get user's blocked accounts
    * @returns array of blocked users
    */
-  getBlockedAccounts(): Observable<BlockedMutedUser[]>{
+  getBlockedAccounts(): Observable<BlockedMutedUser[]> {
     return this.http
-    .get<BlockedMutedUser[]>(`${this.base}interactions/blocks`)
-    .pipe(catchError(this.handleError));
+      .get<BlockedMutedUser[]>(`${this.base}interactions/blocks`)
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -656,7 +735,7 @@ export class DataService {
    *@param email(string) the new mail
    * @returns response
    */
-  updateEmail(newEmail:string): Observable<any>{
+  updateEmail(newEmail: string): Observable<any> {
     const obj = { email: String() };
     obj.email = newEmail;
 
@@ -671,9 +750,10 @@ export class DataService {
    *@param username(string) the new username
    * @returns response
    */
-  updateUserName(userName:string): Observable<any>{
-    const obj = { username: String() };
+  updateUserName(userName:string, password:string): Observable<any>{
+    const obj = { username: String(), password: String() };
     obj.username = userName;
+    obj.password = password;
 
     return this.http.put<any>(this.base + "user/username", obj).pipe(
       map(res => res),
@@ -681,14 +761,15 @@ export class DataService {
     );
   }
 
-   /**
+  /**
    *put request to change user's password
    *@param username(string) the new password
    * @returns response
    */
-  updatePassword(password:string): Observable<any>{
-    const obj = { password: String() };
+  updatePassword(password:string, old_password: string): Observable<any>{
+    const obj = { password: String(), old_password: String() };
     obj.password = password;
+    obj.old_password = old_password;
 
     return this.http.put<any>(this.base + "user/password", obj).pipe(
       map(res => res),
@@ -696,5 +777,3 @@ export class DataService {
     );
   }
 }
-
-

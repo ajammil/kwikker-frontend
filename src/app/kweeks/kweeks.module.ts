@@ -7,11 +7,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ImgFallbackModule } from 'ngx-img-fallback';
 import { KweeksService } from '../services/kweeks.service';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { LikesRekweeksListComponent } from '../likes-rekweeks-list/likes-rekweeks-list.component';
+import { NewKweekComponent } from '../new-kweek/new-kweek.component';
 
 @NgModule({
   declarations: [
     KweekComponent,
-    ReplyComponent
+    ReplyComponent,
+    NewKweekComponent
   ],
   imports: [
     CommonModule,
@@ -23,11 +26,14 @@ import { OverlayModule } from '@angular/cdk/overlay';
     MatIconModule,
   ],
   entryComponents: [
-    ReplyComponent
+    ReplyComponent,
+    LikesRekweeksListComponent,
+    NewKweekComponent
   ],
   exports: [
     KweekComponent,
-    ReplyComponent
+    ReplyComponent,
+    NewKweekComponent
   ],
   providers: [
     KweeksService
