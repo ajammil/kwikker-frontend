@@ -16,6 +16,7 @@ import { MiniUser } from "../model/mini-user";
 import { BlockedMutedUser } from '../model/bloked-muted-users';
 import { $ } from 'protractor';
 import { CacheService } from './cache.service';
+import { Message } from '../model/message';
 
 @Injectable({
   providedIn: "root"
@@ -58,7 +59,17 @@ export class DataService {
       .get<Kweek[]>(`${this.base}kweeks/timelines/home`, parametersSent)
       .pipe(catchError(this.handleError));
   }
-
+  /**
+   * to get hashtag kweeks
+   * @param trendID every hashtag has ID
+   */
+  getTrendsKweeks(trendID:string):Observable<Kweek[]> {
+    const Trend = trendID
+      ? { params: new HttpParams().set("trend_id", trendID) }
+      : {};
+    return this.http.get<Kweek[]>(`${this.base}trends/kweeks`,Trend)
+    .pipe(catchError(this.handleError));
+  }
   /**
    * get request to get All Kweeks made by a certain user
    * @param userName {string} the user that we want to get his kweeks
@@ -307,6 +318,22 @@ export class DataService {
       .pipe(catchError(this.handleError));
   }
 
+  getDirectMessages(username:string):Observable<Message[]>{
+    const parametersSent = username
+    ? {
+        params: new HttpParams().set(
+          "username",
+          username
+        )
+      }
+    : {};
+  return this.http
+    .get<Message[]>(
+      `${this.base}direct_message/`,
+      parametersSent
+    )
+    .pipe(catchError(this.handleError));
+  }
   /**
    *
    * to get request to get the latest notification
@@ -316,7 +343,7 @@ export class DataService {
    */
   getNotificationsList(
     last_notifications_retrieved_id: string
-  ): Observable<Notification[]> {
+  ): Observable<any> {
     const options = last_notifications_retrieved_id
       ? {
           params: new HttpParams().set(
@@ -326,7 +353,7 @@ export class DataService {
         }
       : {};
     return this.http
-      .get<Notification[]>(this.base + "notifications", options)
+      .get<any>(this.base + "notifications", options)
       .pipe(
         catchError(this.handleError) // code 401 -> Unauthorized access.
       );
@@ -645,15 +672,16 @@ export class DataService {
       );
   }
   /**
-   * post request To add a new kweek
+   * post request To add a new kweek/reply as a new kweek
    * @param text {string} the kweek data
+   * @param reply_to {string} the id of kweek that was replyed to
    * @returns Request Response
    */
-  addNewKweek(text: string): Observable<any> {
+  addNewKweek(text: string, reply_to:string): Observable<any> {
     this.cacheService.invalidateUrl(this.base+'kweeks/timelines/profile');
     const obj = { text: String(), reply_to: String() };
     obj.text = text;
-    obj.reply_to = null;
+    obj.reply_to = reply_to;
 
     return this.http.post<any>(this.base + "kweeks/", obj).pipe(
       map(res => res),
@@ -776,4 +804,59 @@ export class DataService {
       catchError(this.handleError)
     );
   }
+
+  /**
+   * post request To upload photo
+   * @param image_file {File} The Uploaded Image
+   * @returns Request Response (media id);
+   */
+  postMedia(image_file: File): Observable<string> {
+    const body = new FormData();
+    body.append('file', image_file, "Image.png");
+    
+    return this.http.post<string>(this.base + 'media/', body)
+                          .pipe(
+                           map(res => res),
+                           catchError(this.handleError)
+                           );
+  }
+
+  /**
+   *get request to get user's email
+   * @returns user's email
+   */
+  getEmail(): Observable<string> {
+    return this.http
+      .get<string>(`${this.base}user/email`)
+      .pipe(catchError(this.handleError));
+  }
+  /**
+   *get request to get user's mentions
+   *@param last_retrieved_kweek_id {string} send last user to get more ids
+   * @returns user's mentions
+   */
+  getUserMentions(last_retrieved_kweek_id: string): Observable<any> {
+    const obj = { last_retrieved_kweek_id: String() };
+    obj.last_retrieved_kweek_id = last_retrieved_kweek_id;
+    const parametersSent = {
+      params: new HttpParams().set("last_retrieved_kweek_id", last_retrieved_kweek_id)
+    };
+    if(last_retrieved_kweek_id === null){
+      return this.http.get<any>(this.base + "kweeks/timelines/mentions").pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
+  
+    }
+    else{
+    return this.http.get<any>(this.base + "kweeks/timelines/mentions",parametersSent).pipe(
+      map(res => res),
+      catchError(this.handleError)
+    );
+  }
+  }
 }
+
+
+
+
