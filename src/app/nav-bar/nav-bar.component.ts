@@ -130,6 +130,7 @@ export class NavBarComponent implements OnInit {
       panelClass: 'kweekBox'
     });
   dialogRef.componentInstance.reply = false;
+  dialogRef.componentInstance.kweekTO = false;
   /**
    * Function for closing the dialog and displaying a msg 
    * 
@@ -139,7 +140,7 @@ export class NavBarComponent implements OnInit {
       console.log('The dialog was closed');
     });
 
-    console.log("modal should show");
+   
   }
    /**
    * Function to open kweek dialog 

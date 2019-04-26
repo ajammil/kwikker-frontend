@@ -1,5 +1,5 @@
 // angular components
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import {FormGroup , FormBuilder, Validators} from '@angular/forms';
 // used services
 import { ChatService } from '../chat/chat.service';
@@ -17,7 +17,7 @@ import { ChatComponent } from '../chat/chat.component';
   styleUrls: ['./direct-messages.component.css'],
   providers: [ DirectMessagesService]
 })
-export class DirectMessagesComponent implements OnInit {
+export class DirectMessagesComponent implements OnInit , AfterViewInit{
   @ViewChild('scrollMe') private myScrollContainer: ElementRef;
   /**
    * addressed person
@@ -39,7 +39,11 @@ export class DirectMessagesComponent implements OnInit {
    * list of messages
    */
   messageList :Message[];
-  @ViewChild('file') sendElement: ElementRef;
+  /** 
+   * uploaded image
+  */
+  image:File;
+  @ViewChild("message") sendElement: ElementRef;
   /**
    *
    * @param chatService to get data of addresse
@@ -53,7 +57,6 @@ export class DirectMessagesComponent implements OnInit {
               private socket:DirectMessagesService,
               public DialogRef: MatDialogRef<ChatComponent>) {
                 
-                this.sendElement.nativeElement.focus();
    }
    
   ngOnInit() {
@@ -71,6 +74,10 @@ export class DirectMessagesComponent implements OnInit {
       this.messageList = list.reverse();
     }
     );
+  }
+
+  ngAfterViewInit(){
+    this.sendElement.nativeElement.focus();
   }
   /**
    * click input tag on button click
@@ -91,6 +98,7 @@ export class DirectMessagesComponent implements OnInit {
     reader.onload = (_event) => {
       this.imgURL = reader.result;
     };
+    this.image = files[0];
   }
   /**
    * remove image from uploading it
@@ -108,18 +116,20 @@ export class DirectMessagesComponent implements OnInit {
     const message = {
       text: '',
       username: '',
-      media_url: ''
+      media_id: ''
     };
     message.text = this.myForm.controls.message.value;
     message.username = this.addressee.username;
     if(this.uploadImg===true){
-      // this.data.postMedia()
+       this.data.postMedia(this.image).subscribe(mediaUrl => {message.media_id= mediaUrl.media_id;
+        this.data.createMessage(message).subscribe();}
+        );
+    } else {
+      message.media_id = '' ;
+      this.data.createMessage(message).subscribe();
     }
-
-    // to do
-    message.media_url = '' ;
-    this.data.createMessage(message).subscribe();
     this.myForm.reset();
+    this.removeImg();
   }
   toInbox() {
     this.chatService.setSection(1);
