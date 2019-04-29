@@ -1,41 +1,34 @@
-.Kweeks
+.right-part {
+	margin-left: 0.01%;
+}
+
+
+/* Kweeks Container */
+
+.Kweeks {
+	height: auto;
+	background-color: white;
+	padding: 0 0;
+	margin: 0 0;
+}
+
+ @media (max-width: 1400px) {
+	/*  Trends Bar will disappear From right In small Devices */
+ 	.Trend {
+		display: none !important;
+	} 
+} 
+
+.Logo {
+	width: 40px;
+	height: 40px;
+	position: relative;
+	left: 42%;
+	margin-top: 20px;
+	margin-bottom: 50px;
+}
+
+.col-fixed
 {
-    height:auto;
-    background-color: white;
-    padding: 0 0;
-    margin: 0 0;
-
+	width: 640px;
 }
-
-.right-part
-{
-    margin-left: 0.01%;
-}
-
-.square {
-    position: absolute;
-    top: -6px;
-    left: 10px;
-    width: 12px;
-    height: 12px;
-    border-top: 1px solid rgba(0,0,0,.15);
-    border-left: 1px solid rgba(0,0,0,.15);
-    background-color: #fff;
-    transform: rotate(45deg);
-}
-
-@media (max-width: 1200px) { 
-
-    .right-part
-    {
-        min-width: 1200px;
-        margin-left:20px;
-    } 
-
-    #Right-Profile-Trends 
-    {
-        display: none !important;
-    }
- }
-
-

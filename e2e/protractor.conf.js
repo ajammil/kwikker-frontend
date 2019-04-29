@@ -9,10 +9,13 @@ exports.config = {
     './src/**/*.e2e-spec.ts'
   ],
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'chrome',
+    // 'chromeOptions': {
+    //   'args': ['--disable-web-security', '--user-data-dir=~/.e2e-chrome-profile']
+    // }
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'http://localhost:4200',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
@@ -20,9 +23,11 @@ exports.config = {
     print: function() {}
   },
   onPrepare() {
+    browser.manage().window().setSize(1600, 1000);
     require('ts-node').register({
       project: require('path').join(__dirname, './tsconfig.e2e.json')
     });
     jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+    browser.manage().window().maximize();
   }
 };
