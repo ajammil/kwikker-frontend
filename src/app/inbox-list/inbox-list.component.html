@@ -46,9 +46,11 @@
       people  
     </div>
     <div class="person" *ngFor="let user of users" (click)="selectUser(user)">
-      <img [src]="user.profile_image_url">
+      <img [src]="user.profile_image_url" onError="this.src='http://kwikkerbackend.eu-central-1.elasticbeanstalk.com/user/upload/picture/profile.jpg'"> 
       <div class="username">
+        <p style="line-height: initial;">
         {{user.username}}
+        </p>
       </div>
       <div class="screenName">
         @{{user.screen_name}}
