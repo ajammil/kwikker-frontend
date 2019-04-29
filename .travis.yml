@@ -4,14 +4,14 @@ services:
 
 #before_install:
 
-#  - docker build -t ajammil/kwikker/frontendtest -f Dockerfile.dev .
+  - docker build -t ajammil/kwikker/frontendtest -f Dockerfile.dev .
 
 
 script:
   - gem install bundler
 #tests will be here
 # run tests (not yet working)
-#- docker run ajammil/kwikker/frontendtest ng test --watch=false
+  - docker run ajammil/kwikker/frontendtest ng test --watch=false
 
 after_success:
   #build production image
