@@ -13,7 +13,7 @@ COPY package.json .
 RUN npm install
 RUN npm install -g @angular/cli@7.1.2
 
-# add app
+# add app files
 COPY . .
 
 
